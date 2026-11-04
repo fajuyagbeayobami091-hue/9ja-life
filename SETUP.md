@@ -1,26 +1,17 @@
-# Connect 9ja Life to Supabase
+# 9ja Life setup
 
-The website is configured with your Supabase project URL and browser-safe anon key. The anon key is public by design; Row Level Security is enabled and no public table access policies are created. The service-role/secret key is never put in the website. Order create/lookup calls run through Edge Functions.
+## Supabase database
 
-## Deploy the database and functions
+The orders table is in Supabase. For payment recording, run the migration in `supabase/migrations/202611040001_order_payment.sql` once in the Supabase SQL Editor. It adds payment method and payment status fields to existing orders.
 
-1. Instathen open PowerShell in this app folder.
-2. Install the Supabase CLI: `npm install --global supabase`.
-3. Sign in: `supabase login`.
-4. Link your project: `supabase link --project-ref tqkyplmasxrwbjbqgdpc`.
-5. Apply the schema: `supabase db push`.
-6. Deploy both functions: `supabase functions deploy create-order` and `supabase functions deploy track-order`.
+## Edge Functions
 
-The functions use Supabase's server-provided secret key environment variable. Do not add a service-role/secret key to GitHub, this HTML file, or a .env file that gets committed.
+The deployed `create-order` function verifies menu prices on the server, totals all items, records the payment choice, and saves the order. `track-order` returns the status, total, and payment information for its tracking code. Source files are in `supabase/functions/`.
 
-## Staff order updates
+## Payment options
 
-In Supabase Dashboard → Table Editor → `orders`, staff can change `status` to `preparing`, `ready`, `on_the_way`, `delivered`, or `cancelled`. Customers who have enabled browser notifications and are tracking their code receive an update as the status changes. For phone/SMS or updates when the page is closed, connect a notification provider and server-side webhook later.
+Customers can choose bank transfer or cash on delivery. Bank transfers go to the OPay/PalmPay account shown at checkout. The app marks transfer payment as pending confirmation; staff must verify the transfer and update `payment_status` to `paid` in Supabase. Cash-on-delivery orders start as unpaid. The site does not process card payments or verify transfers automatically.
 
-## Publish with GitHub
+## Publish
 
-Create a GitHub repository, then upload `outputs/index.html`, `supabase/`, and this file (or move the app files to the repository root). The project has no Git remote configured yet, so it has not been pushed. You can host the static page with GitHub Pages after placing `index.html` at the repository root.
-
-## Notes
-
-Order records include customer phone and delivery address. Restrict Supabase dashboard access to trusted staff. The public tracking code is random and only returns the order status and total needed by the tracker.
+The website is served from the root `index.html` using GitHub Pages. Supabase project URL and the public anon key are used in the browser. Never put a service-role or secret key in the HTML or GitHub.
