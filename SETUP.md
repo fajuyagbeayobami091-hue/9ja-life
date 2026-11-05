@@ -10,7 +10,13 @@ The deployed `create-order` function verifies menu prices on the server, totals 
 
 ## Payment options
 
-Customers can choose bank transfer or cash on delivery. Bank transfers go to the OPay/PalmPay account shown at checkout. The app marks transfer payment as pending confirmation; staff must verify the transfer and update `payment_status` to `paid` in Supabase. Cash-on-delivery orders start as unpaid. The site does not process card payments or verify transfers automatically.
+Customers can choose bank transfer or cash on delivery. Bank transfers go to the OPay/PalmPay account shown at checkout. The current fixed account number does not send an automatic payment event to the app, so staff must verify the transfer and set `payment_status` to `paid` in Supabase. Cash-on-delivery orders start as unpaid.
+
+## Customer order notifications
+
+The tracker checks for order and payment changes every 10 seconds while the customer keeps the tracking page open. The customer must allow browser notifications. When staff marks payment as paid, the tracker shows “Payment received successfully” and sends a notification. When staff changes status to `on_the_way`, the app shows a scooter symbol and sends an on-the-way notification. Clicking a notification returns to the tracker. The site does not yet send push notifications after the customer closes the page.
+
+For automatic bank confirmation, integrate a merchant payment provider that verifies incoming payments and sends a signed server webhook. For notifications while the site is closed, add a Web Push subscription flow and a server-side push sender with protected VAPID keys. Never place payment-provider secrets or private push keys in the website HTML or GitHub.
 
 ## Publish
 
